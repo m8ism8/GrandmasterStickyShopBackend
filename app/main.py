@@ -44,16 +44,29 @@ class CategoryResponse(BaseModel):
             str: lambda v: v.encode('utf-8').decode('utf-8')
         }
 
+class ProductResponse(BaseModel):
+    id: int
+    name_en: str
+    name_ru: str
+    description_en: str
+    description_ru: str
+    price: float
+    category_id: int
+    image_url: str | None = None
+
+    class Config:
+        from_attributes = True
+
 @app.get("/")
 def root():
-    return {"message": "Marketplace Backend Ready"}
+    return {"message": "Welcome to the Marketplace API"}
 
 @app.get("/categories", response_model=List[CategoryResponse])
 def get_categories(db: Session = Depends(get_db)):
     categories = db.query(category.Category).all()
-    # Debug print
-    for cat in categories:
-        print(f"Category {cat.id}:")
-        print(f"  name_en: {repr(cat.name_en)}")
-        print(f"  name_ru: {repr(cat.name_ru)}")
     return categories
+
+@app.get("/products", response_model=List[ProductResponse])
+def get_products(db: Session = Depends(get_db)):
+    products = db.query(product.Product).all()
+    return products

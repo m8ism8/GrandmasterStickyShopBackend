@@ -8,16 +8,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get database URL with error handling
-DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL is None:
+SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
+if SQLALCHEMY_DATABASE_URL is None:
     raise ValueError("DATABASE_URL environment variable is not set. Please check your .env file.")
 
-print(f"Using database URL: {DATABASE_URL}")  # Debug print
+print(f"Using database URL: {SQLALCHEMY_DATABASE_URL}")  # Debug print
 
 engine = create_engine(
-    DATABASE_URL,
+    SQLALCHEMY_DATABASE_URL,
     connect_args={
-        "client_encoding": "utf8"
+        "options": "-c client_encoding=utf8"
     }
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
