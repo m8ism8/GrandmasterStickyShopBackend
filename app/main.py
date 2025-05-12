@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.db import engine, Base, get_db
 from sqlalchemy.orm import Session
 from app.models import user, category, product, order
-from typing import List
+from typing import List, Any
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from app.routes import auth
@@ -106,6 +106,15 @@ class ProductCreate(BaseModel):
     img: str | None = None
     category_id: int
 
+class OrderProduct(BaseModel):
+    id: int
+    name: str
+    amount: int
+    seller_id: int
+
+class OrderCreate(BaseModel):
+    products: list[OrderProduct]
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Marketplace API"}
@@ -139,3 +148,14 @@ def create_product(product_data: ProductCreate, current_user: user.User = Depend
     db.refresh(new_product)
     
     return new_product
+
+@app.post("/orders")
+def create_order(order_data: OrderCreate, current_user: user.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    new_order = order.Order(
+        buyer_id=current_user.id,
+        products=[product.dict() for product in order_data.products]
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+    return {"message": "Order created successfully", "order_id": new_order.id}
