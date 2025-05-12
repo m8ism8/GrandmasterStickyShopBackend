@@ -6,6 +6,8 @@ from app.models import user, category, product, order
 from typing import List
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
+from app.routes import auth
+from app.db.init_db import init_db as initialize_database
 
 app = FastAPI(
     title="Marketplace API",
@@ -20,14 +22,27 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Added Vue dev server
+    allow_origins=["http://localhost:3000", "http://localhost:5173"],  # Add your frontend URLs
     allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=600,
 )
 
 # Import your models
 from app.models import user, category, product, order
+
+# Include routers
+app.include_router(auth.router, prefix="/auth", tags=["auth"])
+
+@app.on_event("startup")
+async def startup_event():
+    try:
+        initialize_database()
+    except Exception as e:
+        print(f"Failed to initialize database: {str(e)}")
+        raise
 
 Base.metadata.create_all(bind=engine)
 
@@ -58,7 +73,7 @@ class ProductResponse(BaseModel):
         from_attributes = True
 
 @app.get("/")
-def root():
+def read_root():
     return {"message": "Welcome to the Marketplace API"}
 
 @app.get("/categories", response_model=List[CategoryResponse])

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, TIMESTAMP
+from sqlalchemy import Boolean, Column, Integer, String, TIMESTAMP
 from app.db import Base
+from datetime import datetime
 
 class User(Base):
     __tablename__ = "users"
@@ -7,5 +8,5 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True)
     password = Column(String)
-    role = Column(String)  # 'buyer' or 'seller'
-    created_at = Column(TIMESTAMP)
+    is_seller = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
